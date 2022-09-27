@@ -79,7 +79,29 @@ const displayMovements = function (movements) {
   });
 };
 
-displayMovements(account1.movements);
+const calcDisplayBalance = function (acc) {
+  acc.balance = acc.movements.reduce((acc, mov) => acc + mov, 0);
+  labelBalance.textContent = `${acc.balance}€`;
+};
+
+const calcDisplaySummary = function (acc) {
+  const incomes = acc.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, mov) => acc + mov, 0);
+  labelSumIn.textContent = `${incomes}€`;
+
+  const outcomes = Math.abs(
+    acc.movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov, 0)
+  );
+  labelSumOut.textContent = `${outcomes}€`;
+
+  const interest = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => (deposit * acc.interestRate) / 100)
+    .filter((int, i, arr) => int >= 1)
+    .reduce((acc, int) => acc + int, 0);
+  labelSumInterest.textContent = `${interest}€`;
+};
 
 const createUsernames = function (accs) {
   accs.forEach(function (acc) {
@@ -91,8 +113,61 @@ const createUsernames = function (accs) {
   });
 };
 
+const updateUI = acc => {
+  displayMovements(acc.movements);
+  calcDisplayBalance(acc);
+  calcDisplaySummary(acc);
+  inputTransferAmount.value = inputTransferTo.value = '';
+};
+
 createUsernames(accounts);
-console.log(accounts);
+
+let currentAccount;
+
+btnLogin.addEventListener('click', function (e) {
+  e.preventDefault();
+  currentAccount = accounts.find(
+    acc => acc.username === inputLoginUsername.value
+  );
+  console.log(currentAccount);
+
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    // DISPLAY UI AND WELCOME MESSAGE
+    labelWelcome.textContent = `Welcome back, ${
+      currentAccount.owner.split(' ')[0]
+    }`;
+    containerApp.style.opacity = '1';
+    // Clear input fields
+    inputLoginUsername.value = inputLoginPin.value = '';
+    //  Change focus
+    inputLoginPin.blur();
+
+    updateUI(currentAccount);
+  }
+});
+
+btnTransfer.addEventListener('click', function (e) {
+  e.preventDefault();
+  const ammount = Number(inputTransferAmount.value);
+  const recieverAcc = accounts.find(
+    acc => acc.username === inputTransferTo.value
+  );
+
+  console.log(ammount, recieverAcc);
+
+  if (
+    ammount > 0 &&
+    recieverAcc &&
+    currentAccount.balance >= ammount &&
+    recieverAcc?.username !== currentAccount.username
+  ) {
+    //doing the transfer
+    currentAccount.movements.push(-ammount);
+    recieverAcc.movements.push(ammount);
+    updateUI(currentAccount);
+  }
+});
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -114,8 +189,8 @@ const eurToUsd = 1.1;
 
 const movementsUSD = movements.map(mov => Math.trunc(mov * eurToUsd));
 
-console.log(movements);
-console.log(movementsUSD);
+// console.log(movements);
+// console.log(movementsUSD);
 
 const movementsDescriptions = movements.map(
   (mov, i) =>
@@ -124,10 +199,106 @@ const movementsDescriptions = movements.map(
     )}`
 );
 
-console.log(movementsDescriptions);
+// console.log(movementsDescriptions);
 
 const deposits = movements.filter(function (mov) {
   return mov > 0;
 });
-console.log(movements);
-console.log(deposits);
+// console.log(movements);
+// console.log(deposits);
+
+// console.log(movements);
+
+// accumulator is lake a snowball, it keeps getting bigger, adding all the movements
+const balance = movements.reduce(function (acc, cur, i, arr) {
+  // console.log(`Iteration ${i}: ${acc}`);
+  return acc + cur;
+}, 0);
+
+// console.log(balance);
+
+// get max value
+const maxMovement = movements.reduce((acc, mov) => {
+  if (acc > mov) {
+    return acc;
+  } else {
+    return mov;
+  }
+}, movements[0]);
+
+// const eurToUsd = 1.1;
+const totalDeposits = Math.round(
+  movements
+    .filter(mov => mov > 0)
+    .map(mov => mov * eurToUsd)
+    .reduce((acc, mov) => acc + mov, 0)
+);
+
+const totalWithdrawals = Math.round(
+  Math.abs(
+    movements
+      .filter(mov => mov < 0)
+      .map(mov => mov * eurToUsd)
+      .reduce((acc, mov) => acc + mov, 0)
+  )
+);
+
+console.log(totalDeposits);
+console.log(totalWithdrawals);
+// console.log(maxMovement);
+
+const firstWithdrawal = movements.find(mov => mov < 0);
+console.log(firstWithdrawal);
+
+console.log(accounts);
+
+const account = accounts.find(acc => acc.owner === 'Jessica Davis');
+console.log(account);
+
+//coding challenge 2
+// test data:
+// const testData1 = [5, 2, 4, 1, 15, 8, 3];
+// const testdata2 = [16, 6, 10, 5, 6, 1, 4];
+
+// const calcAverageHumanAge = ages => {
+//   // console.log(ages);
+
+//   const humanAges = ages.map(age => {
+//     if (age <= 2) {
+//       return 2 * age;
+//     } else {
+//       return 16 + age * 4;
+//     }
+//   });
+//   console.log(humanAges);
+
+//   const filteredAges = humanAges.filter(age => {
+//     return age >= 18;
+//   });
+
+//   const avrAdultAge = filteredAges.reduce((acc, ages) => {
+//     // console.log(filteredAges.length);
+//     return acc + ages;
+//   }, 0);
+
+//   // console.log(avrAdultAge);
+
+//   return avrAdultAge / filteredAges.length;
+// };
+
+// console.log(calcAverageHumanAge(testData1));
+// console.log(calcAverageHumanAge(testdata2));
+
+// CODING CHALENGE 3
+
+// const testData1 = [5, 2, 4, 1, 15, 8, 3];
+// const testdata2 = [16, 6, 10, 5, 6, 1, 4];
+
+// const calcAverageHumanAge = ages =>
+//   ages
+//     .map(age => (age <= 2 ? 2 * age : 16 + age * 4))
+//     .filter(age => age >= 18)
+//     .reduce((acc, ages, i, arr) => acc + ages / arr.length, 0);
+
+// console.log(calcAverageHumanAge(testData1));
+// console.log(calcAverageHumanAge(testdata2));
