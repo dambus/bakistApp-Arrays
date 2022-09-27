@@ -168,6 +168,33 @@ btnTransfer.addEventListener('click', function (e) {
   }
 });
 
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+  const amount = Number(inputLoanAmount.value);
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    //add movement
+    currentAccount.movements.push(amount);
+    //update UI
+    updateUI(currentAccount);
+  }
+  inputLoanAmount.value = '';
+});
+
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  console.log(currentAccount.username, currentAccount.pin);
+  if (
+    inputCloseUsername.value === currentAccount.username &&
+    Number(inputClosePin.value) === Number(currentAccount.pin)
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.username === currentAccount.username
+    );
+    accounts.splice(index, 1);
+    inputCloseUsername.value = inputClosePin.value = '';
+    containerApp.style.opacity = '0';
+  }
+});
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -302,3 +329,89 @@ console.log(account);
 
 // console.log(calcAverageHumanAge(testData1));
 // console.log(calcAverageHumanAge(testdata2));
+
+// console.log(movements);
+// console.log(movements.includes(-130));
+
+// const anyDeposits = movements.some(mov => mov > 5000);
+// console.log(anyDeposits);
+
+// CHALLENGE #4
+
+const dogs = [
+  { weight: 22, curFood: 250, owners: ['Alice', 'Bob'] },
+  { weight: 8, curFood: 200, owners: ['Matilda'] },
+  { weight: 13, curFood: 275, owners: ['Sarah', 'John'] },
+  { weight: 32, curFood: 340, owners: ['Michael'] },
+];
+const allowedFood = function (dog) {
+  return Math.round(dog.weight ** 0.75 * 28);
+};
+
+// 1.
+const recommendedFood = function (dogs) {
+  console.log(dogs);
+  dogs.forEach(function (dog) {
+    dog.food = Math.round(dog.weight ** 0.75 * 28);
+    console.log();
+  });
+};
+recommendedFood(dogs);
+console.log(dogs);
+
+//2.
+const dogSarah = dogs.find(dog => dog.owners.includes('Sarah'));
+console.log(dogSarah);
+const eatHow = function (dog) {
+  // if(dog.food > dog.curFood) {
+  //   console.log('')
+  // }
+  console.log(
+    dog.food > dog.curFood
+      ? 'Dog is eating too little'
+      : 'Dog is eating too much'
+  );
+};
+eatHow(dogSarah);
+// console.log(allowedFood(dogs));
+// console.log(recommendedFood(dogs));
+
+//3.
+// const ownersEatToMuch = [];
+// const ownersEatTooLittle = [];
+
+const ownersEatToMuch = dogs
+  .filter(dog => dog.curFood > dog.food)
+  .map(dog => dog.owners)
+  .flat();
+console.log(ownersEatToMuch);
+
+const ownersEatTooLittle = dogs
+  .filter(dog => dog.curFood < dog.food)
+  .map(dog => dog.owners)
+  .flat();
+console.log(ownersEatTooLittle);
+
+//4.
+console.log(
+  `${ownersEatToMuch.join(
+    ' and '
+  )} dogs eat to much and ${ownersEatTooLittle.join(' and ')} eat too little.`
+);
+
+//5.
+const eatingExactly = dogs.some(dog => dog.curFood === dog.food);
+console.log(eatingExactly);
+
+//6.
+const checkEatingOkay = dog =>
+  dog.curFood > dog.food * 0.9 && dog.curFood < dog.food * 1.1;
+console.log(dogs.some(checkEatingOkay));
+
+//7.
+const eaetingOkay = dogs.filter(checkEatingOkay);
+console.log(eaetingOkay);
+
+//8.
+const dogsSorted = dogs.slice().sort((a, b) => a.food - b.food);
+console.log(dogsSorted);
